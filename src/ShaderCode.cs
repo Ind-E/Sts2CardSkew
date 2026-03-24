@@ -87,36 +87,31 @@ void fragment() {
     float tilt_shift = (x_rot * 0.02) + (y_rot * 0.03);
 
     if (effect_mode == 1) { // foil
-        vec2 foil_uv = adj_uv;
-
         float f_r = (slow_time * 0.66) + (tilt_shift * 0.66);
         float f_g = (slow_time * 0.5) + (tilt_shift * 0.5);
 
-        // concentric circles
-        float fac1 = max(min(2.0 * sin((length(90.0 * foil_uv) + f_r * 2.0) + 3.0 * (1.0 + 0.8 * cos(length(113.1121 * foil_uv) - f_r * 3.121))) - 1.0 - max(5.0 - length(90.0 * foil_uv), 0.0), 1.0), 0.0);
-
-        // searchlight rays
+        float fac1 = clamp(2.0 * sin((length(90.0 * adj_uv) + f_r * 2.0) + 3.0 * (1.0 + 0.8 * cos(length(113.1121 * adj_uv) - f_r * 3.121))) - 1.0 - max(5.0 - length(90.0 * adj_uv), 0.0), 0.0, 1.0);
         vec2 rotater = vec2(cos(f_r * 0.1221), sin(f_r * 0.3512));
-        float radial_angle = dot(rotater, foil_uv) / (length(rotater) * length(foil_uv) + 0.0001);
-        float fac2 = max(min(5.0 * cos(f_g * 0.3 + radial_angle * 3.1415 * (2.2 + 0.9 * sin(f_r * 1.65 + 0.2 * f_g))) - 4.0 - max(2.0 - length(20.0 * foil_uv), 0.0), 1.0), 0.0);
+        float radial_angle = dot(rotater, adj_uv) / (length(rotater) * length(adj_uv) + 0.0001);
+        float fac2 = clamp(5.0 * cos(f_g * 0.3 + radial_angle * 3.1415 * (2.2 + 0.9 * sin(f_r * 1.65 + 0.2 * f_g))) - 4.0 - max(2.0 - length(20.0 * adj_uv), 0.0), 0.0, 1.0);
 
-        // horizontal/vertical linear shimmers
-        float fac3 = 0.3 * max(min(2.0 * sin(f_r * 5.0 + uv.x * 3.0 + 3.0 * (1.0 + 0.5 * cos(f_r * 7.0))) - 1.0, 1.0), -1.0);
-        float fac4 = 0.3 * max(min(2.0 * sin(f_r * 6.66 + uv.y * 3.8 + 3.0 * (1.0 + 0.5 * cos(f_r * 3.414))) - 1.0, 1.0), -1.0);
+        float fac3 = 0.3 * clamp(2.0 * sin(f_r * 5.0 + uv.x * 3.0 + 3.0 * (1.0 + 0.5 * cos(f_r * 7.0))) - 1.0, -1.0, 1.0);
+        float fac4 = 0.3 * clamp(2.0 * sin(f_r * 6.66 + uv.y * 3.8 + 3.0 * (1.0 + 0.5 * cos(f_r * 3.414))) - 1.0, -1.0, 1.0);
 
         float maxfac = max(max(fac1, max(fac2, max(fac3, max(fac4, 0.0)))) + 2.2 * (fac1 + fac2 + fac3 + fac4), 0.0);
 
-        // boost blue channel
         float low = min(tex.r, min(tex.g, tex.b));
         float high = max(tex.r, max(tex.g, tex.b));
         float delta = min(high, max(0.5, 1.0 - low));
 
-        tex.r += delta * maxfac * 0.25;
-        tex.g += delta * maxfac * 0.25;
-        tex.b += delta * maxfac * 0.75;
+        vec3 foil_color;
+        foil_color.r = tex.r - delta + delta * maxfac * 0.5;
+        foil_color.g = tex.g - delta + delta * maxfac * 0.5;
+        foil_color.b = tex.b + delta * maxfac * 0.7;
 
-        // card is slightly transparent until the shimmer highlights pass over it
-        tex.a = min(tex.a, 0.95 * tex.a + 0.9 * min(0.5, maxfac * 0.1));
+        float foil_alpha = clamp(0.3 + 0.9 * min(0.5, maxfac * 0.1), 0.0, 1.0);
+
+        tex.rgb = mix(tex.rgb, foil_color, foil_alpha);
     }
     else if (effect_mode == 2) { // negative
         vec4 hsl = HSL(tex);
