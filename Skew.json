@@ -1,0 +1,11 @@
+{
+  "id": "Skew",
+  "name": "Skew",
+  "author": "Indi",
+  "description": "Recreates the Balatro skew effect on cards",
+  "version": "v1.0.0",
+  "has_pck": false,
+  "has_dll": true,
+  "dependencies": [],
+  "affects_gameplay": false
+}
