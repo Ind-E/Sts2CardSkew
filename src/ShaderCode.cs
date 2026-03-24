@@ -1,4 +1,4 @@
-namespace Skew;
+namespace BalatroEffects;
 
 public static class ShaderCode
 {

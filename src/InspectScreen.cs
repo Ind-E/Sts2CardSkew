@@ -7,7 +7,7 @@ using MegaCrit.Sts2.Core.Nodes.Screens;
 using MegaCrit.Sts2.Core.Nodes.Screens.InspectScreens;
 using MegaCrit.Sts2.Core.Nodes.Screens.Settings;
 
-namespace Skew;
+namespace BalatroEffects;
 
 public partial class InspectScreen
 {
@@ -15,13 +15,13 @@ public partial class InspectScreen
     {
         if (
             root.FindChild("Upgrade") is not NUpgradePreviewTickbox upgrade
-            || root.HasNode("SkewFXPaginator")
+            || root.HasNode("BalatroEffectsPaginator")
         )
             return;
 
         var paginatorScene = GD.Load<PackedScene>("res://scenes/screens/paginator.tscn");
         var paginator = (Control)paginatorScene.Instantiate();
-        var fxpaginator = new FXPaginator { Name = "SkewFXPaginator" };
+        var fxpaginator = new FXPaginator { Name = "BalatroEffectsPaginator" };
 
         foreach (Node child in paginator.GetChildren().ToArray())
         {
@@ -31,7 +31,7 @@ public partial class InspectScreen
 
         var hbox = new HBoxContainer
         {
-            Name = "SkewHBox",
+            Name = "BalatroEffectsHBox",
             Alignment = BoxContainer.AlignmentMode.End,
         };
         hbox.AddChild(fxpaginator);
@@ -110,7 +110,9 @@ public partial class InspectScreen
             var cardNode = CardFieldRef(__instance);
             ShaderController.ApplyShader(cardNode);
 
-            var paginator = __instance.GetNodeOrNull<FXPaginator>("SkewHBox/SkewFXPaginator");
+            var paginator = __instance.GetNodeOrNull<FXPaginator>(
+                "BalatroEffectsHBox/BalatroEffectsPaginator"
+            );
 
             if (paginator != null)
             {

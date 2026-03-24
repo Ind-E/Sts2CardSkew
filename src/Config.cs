@@ -1,12 +1,12 @@
 using System.Text.Json;
 using Godot;
 
-namespace Skew;
+namespace BalatroEffects;
 
 public static class Config
 {
     private static readonly string FolderPath = Path.Combine(OS.GetUserDataDir(), "mod_configs");
-    private static readonly string FilePath = Path.Combine(FolderPath, "SkewVfx.json");
+    private static readonly string FilePath = Path.Combine(FolderPath, "BalatroEffectsConfig.json");
     private static readonly JsonSerializerOptions Options = new() { WriteIndented = true };
 
     public static Dictionary<string, int> CardSettings { get; private set; } = new();

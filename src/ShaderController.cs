@@ -5,7 +5,7 @@ using MegaCrit.Sts2.Core.Nodes.Cards.Holders;
 using MegaCrit.Sts2.Core.Nodes.GodotExtensions;
 using static Godot.CanvasItem;
 
-namespace Skew;
+namespace BalatroEffects;
 
 public partial class ShaderController
 {
@@ -20,7 +20,7 @@ public partial class ShaderController
     public static void ApplyShader(NCard cardRoot)
     {
         if (
-            cardRoot.HasNode("SkewViewportContainer")
+            cardRoot.HasNode("BalatroShaderViewportContainer")
             || cardRoot.GetNodeOrNull<Control>("CardContainer") is not Control cardContainer
             || cardRoot?.Model?.Id?.ToString() is not string cardId
         )
@@ -34,10 +34,10 @@ public partial class ShaderController
         mat.SetShaderParameter(PropFov, 90f);
         mat.SetShaderParameter(PropInset, 0f);
 
-        var viewportContainer = new SkewContainer
+        var viewportContainer = new ShaderContainer
         {
             Material = (ShaderMaterial)mat.Duplicate(),
-            Name = "SkewViewportContainer",
+            Name = "BalatroShaderViewportContainer",
             TextureFilter = TextureFilterEnum.LinearWithMipmaps,
             CustomMinimumSize = size,
             Size = size,
@@ -61,7 +61,7 @@ public partial class ShaderController
         mat.SetShaderParameter(PropEffectMode, savedIndex);
     }
 
-    private partial class SkewContainer : SubViewportContainer
+    private partial class ShaderContainer : SubViewportContainer
     {
         private const float MaxTilt = 16.0f;
         private const float LerpSpeed = 0.2f;

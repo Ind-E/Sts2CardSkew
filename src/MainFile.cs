@@ -3,12 +3,12 @@ using HarmonyLib;
 using MegaCrit.Sts2.Core.Modding;
 using MegaCrit.Sts2.Core.Nodes.Cards;
 
-namespace Skew;
+namespace BalatroEffects;
 
 [ModInitializer(nameof(Initialize))]
 public partial class MainFile : Node
 {
-    public const string ModId = "Skew";
+    public const string ModId = "BalatroEffects";
     private static SceneTree? tree;
 
     public static MegaCrit.Sts2.Core.Logging.Logger Logger { get; } =
