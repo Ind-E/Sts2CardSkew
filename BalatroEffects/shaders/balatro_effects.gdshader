@@ -1,9 +1,3 @@
-namespace BalatroEffects;
-
-public static class ShaderCode
-{
-    public const string Code =
-        @"
 shader_type canvas_item;
 
 uniform float fov : hint_range(1, 179) = 90;
@@ -11,6 +5,7 @@ uniform bool cull_back = true;
 uniform float y_rot : hint_range(-180, 180) = 0.0;
 uniform float x_rot : hint_range(-180, 180) = 0.0;
 uniform float inset : hint_range(0, 1) = 0.0;
+uniform float seed = 0.0;
 
 uniform int effect_mode = 0; // 0:None, 1:Foil, 2:Negative, 3:Polychrome, 4:Holographic
 
@@ -81,7 +76,7 @@ void fragment() {
 
     vec4 tex = texture(TEXTURE, uv);
     vec2 adj_uv = uv - 0.5;
-    float slow_time = TIME * 0.1;
+    float slow_time = TIME * 0.1 + seed;
 
     // Weighted tilt for consistent sweep direction
     float tilt_shift = (x_rot * 0.02) + (y_rot * 0.03);
@@ -149,13 +144,16 @@ void fragment() {
         float low = min(tex.r, min(tex.g, tex.b));
         float high = max(tex.r, max(tex.g, tex.b));
         float delta = high - low;
-        float saturation_fac = 1.0 - max(0.0, 0.05 * (1.1 - delta));
 
+        float saturation_fac = 1.0 - max(0.0, 0.05 * (1.1 - delta));
         vec4 hsl = HSL(vec4(tex.r * saturation_fac, tex.g * saturation_fac, tex.b, tex.a));
 
         // plasma field
-        float t_poly = slow_time * 2.221;
-        vec2 uv_p = adj_uv * 50.0;
+        float t_poly = slow_time * 5.0;
+
+        vec2 texture_res = 1.0 / TEXTURE_PIXEL_SIZE;
+        vec2 floored_uv = floor(uv * texture_res) / texture_res;
+        vec2 uv_p = (floored_uv - 0.5 + fract(seed)) * 50.0;
 
         vec2 p1 = uv_p + 50.0 * vec2(sin(-t_poly / 143.6340), cos(-t_poly / 99.4324));
         vec2 p2 = uv_p + 50.0 * vec2(cos( t_poly / 53.1532),  cos( t_poly / 61.4532));
@@ -168,9 +166,9 @@ void fragment() {
         )) / 2.0;
 
         // shift phase by mouse pos
-        float res = (0.5 + 0.5 * cos(tilt_shift + (poly_field - 0.5) * 3.14));
+        float res = (0.5 + 0.5 * cos(tilt_shift * 2.0 + (poly_field - 0.5) * 3.14));
 
-        hsl.x = mod(hsl.x + res, 1.0);
+        hsl.x = mod(hsl.x + res + slow_time * 0.25, 1.0);
         hsl.y = min(0.6, hsl.y + 0.5);
 
         tex.rgb = RGB(hsl).rgb;
@@ -201,5 +199,4 @@ void fragment() {
     }
 
     COLOR = tex;
-}";
 }

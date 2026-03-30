@@ -9,13 +9,13 @@ namespace BalatroEffects;
 
 public partial class ShaderController
 {
-    private static readonly StringName PropX = "x_rot";
-    private static readonly StringName PropY = "y_rot";
-    private static readonly StringName PropFov = "fov";
-    private static readonly StringName PropInset = "inset";
-    private static readonly StringName PropEffectMode = "effect_mode";
+    private static readonly StringName _xRotKey = "x_rot";
+    private static readonly StringName _yRotKey = "y_rot";
+    private static readonly StringName _effectModeKey = "effect_mode";
 
-    private static readonly Shader EffectsShader = new Shader { Code = ShaderCode.Code };
+    private static readonly Shader EffectsShader = GD.Load<Shader>(
+        "res://BalatroEffects/shaders/balatro_effects.gdshader"
+    );
 
     public static void ApplyShader(NCard cardRoot)
     {
@@ -24,19 +24,17 @@ public partial class ShaderController
             || cardRoot.GetNodeOrNull<Control>("CardContainer") is not Control cardContainer
             || cardRoot?.Model?.Id?.ToString() is not string cardId
         )
+        {
             return;
+        }
 
         var size = new Vector2I(512, 512);
 
         var mat = new ShaderMaterial { Shader = EffectsShader };
-        mat.SetShaderParameter(PropX, 0f);
-        mat.SetShaderParameter(PropY, 0f);
-        mat.SetShaderParameter(PropFov, 90f);
-        mat.SetShaderParameter(PropInset, 0f);
 
         var viewportContainer = new ShaderContainer
         {
-            Material = (ShaderMaterial)mat.Duplicate(),
+            Material = mat,
             Name = "BalatroShaderViewportContainer",
             TextureFilter = TextureFilterEnum.LinearWithMipmaps,
             CustomMinimumSize = size,
@@ -58,7 +56,7 @@ public partial class ShaderController
         viewport.AddChild(cardContainer);
 
         int savedIndex = Config.GetIndex(cardId);
-        mat.SetShaderParameter(PropEffectMode, savedIndex);
+        mat.SetShaderParameter(_effectModeKey, savedIndex);
     }
 
     private partial class ShaderContainer : SubViewportContainer
@@ -101,8 +99,8 @@ public partial class ShaderController
 
             cardHolder = foundHolder;
 
-            mat.SetShaderParameter(PropX, 0f);
-            mat.SetShaderParameter(PropY, 0f);
+            mat.SetShaderParameter(_xRotKey, 0f);
+            mat.SetShaderParameter(_yRotKey, 0f);
         }
 
         private void CheckForIdUpdate()
@@ -117,10 +115,8 @@ public partial class ShaderController
             }
         }
 
-        static AccessTools.FieldRef<NClickableControl, bool> IsHovered = AccessTools.FieldRefAccess<
-            NClickableControl,
-            bool
-        >("_isHovered");
+        static readonly AccessTools.FieldRef<NClickableControl, bool> IsHovered =
+            AccessTools.FieldRefAccess<NClickableControl, bool>("_isHovered");
 
         public override void _Process(double delta)
         {
@@ -135,13 +131,13 @@ public partial class ShaderController
                 if (targetIndex != lastAppliedIndex)
                 {
                     lastAppliedIndex = targetIndex;
-                    mat.SetShaderParameter(PropEffectMode, targetIndex);
+                    mat.SetShaderParameter(_effectModeKey, targetIndex);
                 }
             }
 
             UpdateHolderReference();
 
-            if (!GodotObject.IsInstanceValid(cardHolder))
+            if (!IsInstanceValid(cardHolder))
                 return;
 
             float targetX = 0;
@@ -149,15 +145,15 @@ public partial class ShaderController
 
             bool hovered =
                 cardHolder is NHandCardHolder { ZIndex: > 0 }
-                || cardHolder.Hitbox is { IsEnabled: true } && IsHovered(cardHolder.Hitbox);
+                || (cardHolder.Hitbox is { IsEnabled: true } && IsHovered(cardHolder.Hitbox));
 
             if (hovered)
             {
                 Vector2 offset = cardRoot.GetGlobalMousePosition() - cardRoot.GlobalPosition;
                 Vector2 scale = cardRoot.GetGlobalTransform().Scale.Max(0.01f) * 256f;
 
-                targetX = (offset.Y / scale.X) * -MaxTilt;
-                targetY = (offset.X / scale.Y) * MaxTilt;
+                targetX = offset.Y / scale.X * -MaxTilt;
+                targetY = offset.X / scale.Y * MaxTilt;
             }
 
             targetX = Mathf.Clamp(targetX, -MaxTilt, MaxTilt);
