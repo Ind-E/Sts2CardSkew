@@ -26,21 +26,34 @@ public partial class MainFile : Node
         }
     }
 
-    private static async void OnNodeAdded(Node node)
+    private static readonly StringName InspectCardScreen = "InspectCardScreen";
+    private static readonly StringName Card = "Card";
+
+    private static void OnNodeAdded(Node node)
     {
-        if (tree is null || node is not Control control)
+        if (node is not Control control)
             return;
 
-        if (!control.IsNodeReady())
-            await tree.ToSignal(node, Node.SignalName.Ready);
+        switch (control)
+        {
+            case NCard card when card.Name == Card:
+                card.OnReady(() => ShaderController.ApplyShader(card));
+                break;
 
-        if (control is NCard card && card.Name == "Card")
-        {
-            ShaderController.ApplyShader(card);
+            case Control c when c.Name == InspectCardScreen:
+                c.OnReady(() => InspectScreen.AddButtons(c));
+                break;
         }
-        else if (control.Name == "InspectCardScreen")
-        {
-            InspectScreen.AddButtons(control);
-        }
+    }
+}
+
+public static class NodeExtensions
+{
+    public static void OnReady(this Node node, Action action)
+    {
+        if (node.IsNodeReady())
+            action();
+        else
+            node.Ready += action;
     }
 }
