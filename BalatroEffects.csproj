@@ -72,14 +72,31 @@
         <Reference Include="sts2">
             <HintPath>$(Sts2DataDir)/sts2.dll</HintPath>
             <Private>false</Private>
-            <Publicize>False</Publicize> <!--Allows private/protected field references but may cause errors.-->
         </Reference>
+    </ItemGroup>
+
+    <ItemGroup>
+        <PackageReference Include="Alchyr.Sts2.BaseLib" Version="*" PrivateAssets="All" />
+        <PackageReference Include="Alchyr.Sts2.ModAnalyzers" Version="*" />
+        <AdditionalFiles Include="BalatroEffects/localization/**/*.json"/> <!-- Used by analyzer -->
+    </ItemGroup>
+
+    <ItemGroup>
+        <Compile Remove="BalatroEffects/**" />
+        <Compile Remove="materials/**" />
+        <Compile Remove="shaders/**" />
+        <Compile Remove="images/**" />
+        <EmbeddedResource Remove="BalatroEffects/**" />
+        <EmbeddedResource Remove="materials/**" />
+        <EmbeddedResource Remove="shaders/**" />
+        <EmbeddedResource Remove="images/**" />
     </ItemGroup>
 
     <ItemGroup>
         <None Include=".gitignore" />
         <None Include="BalatroEffects.json" />
         <None Include="project.godot"/>
+        <None Include="BalatroEffects/**" />
     </ItemGroup>
 
     <Target Name="CheckDependencyPaths" >
