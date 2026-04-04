@@ -1,9 +1,9 @@
 <div align="center">
   <h1>Balatro Effects</h1>
   <p>A Slay the Spire 2 Mod</p>
-</div>  
+</div>
 
-[BalatroEffects-demo.webm](https://github.com/user-attachments/assets/35c0f2dc-c131-4f20-9b0e-d5e67501d22e)
+[BalatroEffectsDemo_v0_1_3.webm](https://github.com/user-attachments/assets/7decf0d3-62c3-49fb-99d9-f034d76b9e9d)
 
 Adds the skew effect from Balatro to cards and allows you to enable foil, polychrome, holo, or negative shaders per-card.
 
