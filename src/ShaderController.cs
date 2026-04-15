@@ -1,5 +1,7 @@
+using System.Reflection.Emit;
 using Godot;
 using HarmonyLib;
+using MegaCrit.Sts2.Core.Helpers;
 using MegaCrit.Sts2.Core.Nodes.Cards;
 using MegaCrit.Sts2.Core.Nodes.Cards.Holders;
 using MegaCrit.Sts2.Core.Nodes.GodotExtensions;
@@ -30,7 +32,7 @@ public partial class ShaderController
             return;
         }
 
-        var size = new Vector2I(512, 512);
+        var size = new Vector2I(370, 480);
 
         var mat = new ShaderMaterial { Shader = EffectsShader };
         float seed = cardRoot.GetHashCode() % 10000 / 10.0f;
@@ -41,7 +43,6 @@ public partial class ShaderController
             Material = mat,
             Name = "BalatroShaderViewportContainer",
             TextureFilter = TextureFilterEnum.LinearWithMipmaps,
-            CustomMinimumSize = size,
             Size = size,
             Stretch = true,
             MouseFilter = Control.MouseFilterEnum.Ignore,
@@ -179,6 +180,40 @@ public partial class ShaderController
 
             mat.SetShaderParameter("x_rot", Mathf.Lerp(curX, targetX, LerpSpeed));
             mat.SetShaderParameter("y_rot", Mathf.Lerp(curY, targetY, LerpSpeed));
+        }
+    }
+
+    [HarmonyPatch(typeof(NCard), nameof(NCard.ActivateRewardScreenGlow))]
+    public static class CardGlowBelowViewportPatch
+    {
+        private static readonly AccessTools.FieldRef<NCard, Node> RareGlowRef =
+            AccessTools.FieldRefAccess<NCard, Node>("_rareGlow");
+
+        private static readonly AccessTools.FieldRef<NCard, Node> UncommonGlowRef =
+            AccessTools.FieldRefAccess<NCard, Node>("_uncommonGlow");
+
+        [HarmonyPostfix]
+        public static void Postfix(NCard __instance)
+        {
+            Control? body = __instance.Body;
+            if (body == null)
+                return;
+
+            Node? cardRoot = body.GetParent()?.GetParent()?.GetParent();
+            if (cardRoot == null)
+                return;
+
+            GpuParticles2D glow = (GpuParticles2D)(
+                RareGlowRef(__instance) ?? UncommonGlowRef(__instance)
+            );
+
+            if (glow != null && GodotObject.IsInstanceValid(glow) && glow.GetParent() == body)
+            {
+                body.RemoveChild(glow);
+
+                cardRoot.AddChildSafely(glow);
+                cardRoot.MoveChild(glow, 0);
+            }
         }
     }
 }
