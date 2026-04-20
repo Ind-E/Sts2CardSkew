@@ -9,10 +9,10 @@ namespace BalatroEffects;
 
 public static class EasePatches
 {
+    private const double EaseDuration = 0.12f;
+
     public static void AnimateEase(Control instance, Vector2 targetScale)
     {
-        const double duration = 0.12f;
-
         var trv = Traverse.Create(instance);
         var hoverTweenField = trv.Field<Tween>("_hoverTween");
 
@@ -23,28 +23,28 @@ public static class EasePatches
 
         var rotTween = instance.CreateTween();
         rotTween
-            .TweenProperty(instance, "rotation", 0f, duration)
+            .TweenProperty(instance, "rotation", 0f, EaseDuration)
             .SetEase(Tween.EaseType.Out)
             .SetTrans(Tween.TransitionType.Back);
 
         var tween = instance.CreateTween();
         tween
-            .TweenProperty(instance, "scale", targetScale, duration)
+            .TweenProperty(instance, "scale", targetScale, EaseDuration)
             .SetEase(Tween.EaseType.Out)
             .SetTrans(Tween.TransitionType.Back);
 
         hoverTweenField.Value = tween;
     }
 
-    static readonly MethodInfo getHoverScale = AccessTools.PropertyGetter(
+    static readonly MethodInfo GetHoverScale = AccessTools.PropertyGetter(
         typeof(NCardHolder),
         "HoverScale"
     );
-    static readonly MethodInfo createHoverTipsMethod = AccessTools.Method(
+    static readonly MethodInfo CreateHoverTipsMethod = AccessTools.Method(
         typeof(NCardHolder),
         "CreateHoverTips"
     );
-    static readonly MethodInfo animateEaseMethod = AccessTools.Method(
+    static readonly MethodInfo AnimateEaseMethod = AccessTools.Method(
         typeof(EasePatches),
         nameof(AnimateEase)
     );
@@ -58,14 +58,14 @@ public static class EasePatches
             var codes = new CodeMatcher(instructions);
 
             // insert after `CreateHoverTips()`
-            codes.Start().MatchStartForward(new CodeMatch(i => i.Calls(createHoverTipsMethod)));
+            codes.Start().MatchStartForward(new CodeMatch(i => i.Calls(CreateHoverTipsMethod)));
             if (codes.IsValid)
             {
                 codes.InsertAfter(
                     new CodeInstruction(OpCodes.Ldarg_0),
                     new CodeInstruction(OpCodes.Ldarg_0),
-                    new CodeInstruction(OpCodes.Callvirt, getHoverScale),
-                    new CodeInstruction(OpCodes.Call, animateEaseMethod)
+                    new CodeInstruction(OpCodes.Callvirt, GetHoverScale),
+                    new CodeInstruction(OpCodes.Call, AnimateEaseMethod)
                 );
             }
             else
@@ -86,14 +86,14 @@ public static class EasePatches
             var codes = new CodeMatcher(instructions);
 
             // insert after `CreateHoverTips()`
-            codes.Start().MatchStartForward(new CodeMatch(i => i.Calls(createHoverTipsMethod)));
+            codes.Start().MatchStartForward(new CodeMatch(i => i.Calls(CreateHoverTipsMethod)));
             if (codes.IsValid)
             {
                 codes.InsertAfter(
                     new CodeInstruction(OpCodes.Ldarg_0),
                     new CodeInstruction(OpCodes.Ldarg_0),
-                    new CodeInstruction(OpCodes.Callvirt, getHoverScale),
-                    new CodeInstruction(OpCodes.Call, animateEaseMethod)
+                    new CodeInstruction(OpCodes.Callvirt, GetHoverScale),
+                    new CodeInstruction(OpCodes.Call, AnimateEaseMethod)
                 );
             }
             else

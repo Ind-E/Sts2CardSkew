@@ -5,7 +5,7 @@ uniform bool cull_back = true;
 uniform float y_rot : hint_range(-180, 180) = 0.0;
 uniform float x_rot : hint_range(-180, 180) = 0.0;
 uniform float inset : hint_range(0, 1) = 0.0;
-uniform float intensity: hint_range(0, 1, 0.01) = 0.0;
+uniform float intensity: hint_range(0, 1, 0.01) = 1.0;
 uniform float seed = 0.0;
 
 uniform int effect_mode = 0; // 0:None, 1:Foil, 2:Negative, 3:Polychrome, 4:Holographic

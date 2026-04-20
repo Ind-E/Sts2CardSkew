@@ -1,4 +1,3 @@
-using System.Reflection.Emit;
 using Godot;
 using HarmonyLib;
 using MegaCrit.Sts2.Core.Helpers;
@@ -11,11 +10,11 @@ namespace BalatroEffects;
 
 public partial class ShaderController
 {
-    private static readonly StringName _xRotKey = "x_rot";
-    private static readonly StringName _yRotKey = "y_rot";
-    private static readonly StringName _effectModeKey = "effect_mode";
-    private static readonly StringName _intensityKey = "intensity";
-    private static readonly StringName _seedKey = "seed";
+    private static readonly StringName XRotKey = "x_rot";
+    private static readonly StringName YRotKey = "y_rot";
+    private static readonly StringName EffectModeKey = "effect_mode";
+    private static readonly StringName IntensityKey = "intensity";
+    private static readonly StringName SeedKey = "seed";
 
     private static readonly Shader EffectsShader = GD.Load<Shader>(
         "res://BalatroEffects/shaders/balatro_effects.gdshader"
@@ -36,7 +35,7 @@ public partial class ShaderController
 
         var mat = new ShaderMaterial { Shader = EffectsShader };
         float seed = cardRoot.GetHashCode() % 10000 / 10.0f;
-        mat.SetShaderParameter(_seedKey, seed);
+        mat.SetShaderParameter(SeedKey, seed);
 
         var viewportContainer = new ShaderContainer
         {
@@ -61,10 +60,10 @@ public partial class ShaderController
         viewport.AddChild(cardContainer);
 
         int savedEffect = Config.GetEffect(cardId);
-        mat.SetShaderParameter(_effectModeKey, savedEffect);
+        mat.SetShaderParameter(EffectModeKey, savedEffect);
 
         double savedIntensity = Config.GetIntensity(savedEffect);
-        mat.SetShaderParameter(_intensityKey, savedIntensity);
+        mat.SetShaderParameter(IntensityKey, savedIntensity);
     }
 
     private partial class ShaderContainer : SubViewportContainer
@@ -72,20 +71,20 @@ public partial class ShaderController
         private const float MaxTilt = 16.0f;
         private const float LerpSpeed = 0.2f;
 
-        private Control? cardRoot;
-        private NCardHolder? cardHolder;
-        private int lastAppliedEffect = -1;
-        private double lastAppliedIntensity = -1;
+        private Control? _cardRoot;
+        private NCardHolder? _cardHolder;
+        private int _lastAppliedEffect = -1;
+        private double _lastAppliedIntensity = -1;
 
         public string? CardId;
         public ShaderMaterial? mat;
 
         public override void _Ready()
         {
-            cardRoot = GetParent<Control>();
+            _cardRoot = GetParent<Control>();
             mat = Material as ShaderMaterial;
 
-            if (string.IsNullOrEmpty(CardId) && cardRoot is NCard card)
+            if (string.IsNullOrEmpty(CardId) && _cardRoot is NCard card)
             {
                 CardId = card.Model?.Id?.ToString();
             }
@@ -93,6 +92,9 @@ public partial class ShaderController
 
         private void UpdateHolderReference()
         {
+            if (mat is null)
+                return;
+
             NCardHolder? foundHolder = null;
             for (Node? curr = GetParent(); curr is not null; curr = curr.GetParent())
             {
@@ -103,18 +105,18 @@ public partial class ShaderController
                 }
             }
 
-            if (cardHolder == foundHolder || mat is null)
+            if (_cardHolder == foundHolder)
                 return;
 
-            cardHolder = foundHolder;
+            _cardHolder = foundHolder;
 
-            mat.SetShaderParameter(_xRotKey, 0f);
-            mat.SetShaderParameter(_yRotKey, 0f);
+            mat.SetShaderParameter(XRotKey, 0f);
+            mat.SetShaderParameter(YRotKey, 0f);
         }
 
         private void CheckForIdUpdate()
         {
-            if (cardRoot is NCard nCard)
+            if (_cardRoot is NCard nCard)
             {
                 string? currentModelId = nCard.Model?.Id?.ToString();
                 if (currentModelId != CardId)
@@ -124,12 +126,12 @@ public partial class ShaderController
             }
         }
 
-        static readonly AccessTools.FieldRef<NClickableControl, bool> IsHovered =
+        private static readonly AccessTools.FieldRef<NClickableControl, bool> IsHovered =
             AccessTools.FieldRefAccess<NClickableControl, bool>("_isHovered");
 
         public override void _Process(double delta)
         {
-            if (mat is null || cardRoot is null)
+            if (mat is null || _cardRoot is null)
                 return;
 
             CheckForIdUpdate();
@@ -137,36 +139,36 @@ public partial class ShaderController
             if (!string.IsNullOrEmpty(CardId))
             {
                 int savedEffect = Config.GetEffect(CardId);
-                if (savedEffect != lastAppliedEffect)
+                if (savedEffect != _lastAppliedEffect)
                 {
-                    mat.SetShaderParameter(_effectModeKey, savedEffect);
-                    lastAppliedEffect = savedEffect;
+                    mat.SetShaderParameter(EffectModeKey, savedEffect);
+                    _lastAppliedEffect = savedEffect;
                 }
 
                 double savedIntensity = Config.GetIntensity(savedEffect);
-                if (savedIntensity != lastAppliedIntensity)
+                if (savedIntensity != _lastAppliedIntensity)
                 {
-                    mat.SetShaderParameter(_intensityKey, savedIntensity);
-                    lastAppliedIntensity = savedIntensity;
+                    mat.SetShaderParameter(IntensityKey, savedIntensity);
+                    _lastAppliedIntensity = savedIntensity;
                 }
             }
 
             UpdateHolderReference();
 
-            if (!IsInstanceValid(cardHolder))
+            if (!IsInstanceValid(_cardHolder))
                 return;
 
             float targetX = 0;
             float targetY = 0;
 
             bool hovered =
-                cardHolder is NHandCardHolder { ZIndex: > 0 }
-                || (cardHolder.Hitbox is { IsEnabled: true } && IsHovered(cardHolder.Hitbox));
+                _cardHolder is NHandCardHolder { ZIndex: > 0 }
+                || (_cardHolder.Hitbox is { IsEnabled: true } && IsHovered(_cardHolder.Hitbox));
 
             if (hovered)
             {
-                Vector2 offset = cardRoot.GetGlobalMousePosition() - cardRoot.GlobalPosition;
-                Vector2 scale = cardRoot.GetGlobalTransform().Scale.Max(0.01f) * 256f;
+                Vector2 offset = _cardRoot.GetGlobalMousePosition() - _cardRoot.GlobalPosition;
+                Vector2 scale = _cardRoot.GetGlobalTransform().Scale.Max(0.01f) * 256f;
 
                 targetX = offset.Y / scale.X * -MaxTilt;
                 targetY = offset.X / scale.Y * MaxTilt;
@@ -195,19 +197,17 @@ public partial class ShaderController
         [HarmonyPostfix]
         public static void Postfix(NCard __instance)
         {
-            Control? body = __instance.Body;
-            if (body == null)
+            if (__instance.Body is not Control body)
                 return;
 
-            Node? cardRoot = body.GetParent()?.GetParent()?.GetParent();
-            if (cardRoot == null)
+            if (body.GetParent()?.GetParent()?.GetParent() is not Node cardRoot)
                 return;
 
             GpuParticles2D glow = (GpuParticles2D)(
                 RareGlowRef(__instance) ?? UncommonGlowRef(__instance)
             );
 
-            if (glow != null && GodotObject.IsInstanceValid(glow) && glow.GetParent() == body)
+            if (GodotObject.IsInstanceValid(glow) && glow.GetParent() == body)
             {
                 body.RemoveChild(glow);
 

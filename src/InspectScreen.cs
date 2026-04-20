@@ -13,29 +13,29 @@ namespace BalatroEffects;
 
 public partial class InspectScreen
 {
-    private const string vboxName = "BalatroEffectsVBox";
-    private const string paginatorName = "BalatroEffectsPaginator";
-    private const string sliderName = "BalatroEffectsSlider";
+    private const string VboxName = "BalatroEffectsVBox";
+    private const string PaginatorName = "BalatroEffectsPaginator";
+    private const string SliderName = "BalatroEffectsSlider";
     private static readonly Lazy<Font> LabelFont = new(() =>
         GD.Load<Font>("res://themes/kreon_bold_glyph_space_two.tres")
     );
 
-    private static string cardId = "UnknownCard";
-    private static int currentEffectIndex;
+    private static string _cardId = "UnknownCard";
+    private static int _currentEffectIndex;
 
-    private static List<CardModel> visibleCards = [];
+    private static List<CardModel> _visibleCards = [];
 
     public static void AddButtons(Control root)
     {
-        if (root.HasNode(vboxName))
+        if (root.HasNode(VboxName))
             return;
 
         var slider = (NSlider)
             GD.Load<PackedScene>("res://scenes/ui/volume_slider.tscn").Instantiate();
-        slider.Name = sliderName;
+        slider.Name = SliderName;
         slider.ValueChanged += OnSliderChanged;
 
-        var vbox = new VBoxContainer { Name = vboxName };
+        var vbox = new VBoxContainer { Name = VboxName };
         vbox.AddThemeConstantOverride("separation", 8);
 
         root.AddChild(vbox);
@@ -89,7 +89,7 @@ public partial class InspectScreen
 
     private static void OnSliderChanged(double value)
     {
-        Config.SetIntensity(currentEffectIndex, (float)value / 100.0f);
+        Config.SetIntensity(_currentEffectIndex, (float)value / 100.0f);
     }
 
     public partial class ApplyToVisibleButton : NSettingsButton
@@ -130,7 +130,7 @@ public partial class InspectScreen
 
         private void DisableWhenNotInCompendium()
         {
-            if (visibleCards.Count > 0)
+            if (_visibleCards.Count > 0)
             {
                 Enable();
             }
@@ -142,9 +142,9 @@ public partial class InspectScreen
 
         protected override void OnPress()
         {
-            foreach (CardModel c in visibleCards)
+            foreach (CardModel c in _visibleCards)
             {
-                Config.SetEffect(c.Id.ToString(), Config.GetEffect(cardId));
+                Config.SetEffect(c.Id.ToString(), Config.GetEffect(_cardId));
             }
         }
 
@@ -167,7 +167,7 @@ public partial class InspectScreen
     {
         public EffectsPaginator()
         {
-            Name = paginatorName;
+            Name = PaginatorName;
             CustomMinimumSize = new Vector2(0, 64);
         }
 
@@ -192,16 +192,16 @@ public partial class InspectScreen
 
             _options.AddRange(["None", "Foil", "Negative", "Polychrome", "Holographic"]);
 
-            _currentIndex = Config.GetEffect(cardId);
+            _currentIndex = Config.GetEffect(_cardId);
             _currentIndex = Mathf.Clamp(_currentIndex, 0, _options.Count - 1);
             _label.SetTextAutoSize(_options[_currentIndex]);
         }
 
         public void UpdateTargetCard(string newCardId)
         {
-            cardId = newCardId;
+            _cardId = newCardId;
 
-            int savedIndex = Config.GetEffect(cardId);
+            int savedIndex = Config.GetEffect(_cardId);
             _currentIndex = Mathf.Clamp(savedIndex, 0, _options.Count - 1);
 
             _label?.SetTextAutoSize(_options[_currentIndex]);
@@ -211,21 +211,21 @@ public partial class InspectScreen
         protected override void OnIndexChanged(int index)
         {
             _currentIndex = index;
-            currentEffectIndex = index;
+            _currentEffectIndex = index;
             _label.SetTextAutoSize(_options[index]);
-            Config.SetEffect(cardId, index);
+            Config.SetEffect(_cardId, index);
 
-            var slider = GetParent().GetNode<NSlider>(sliderName);
+            var slider = GetParent().GetNode<NSlider>(SliderName);
             UpdateSliderVisual(slider);
         }
     }
 
-    private static void UpdateSliderVisual(NSlider slider)
+    private static void UpdateSliderVisual(NSlider? slider)
     {
         if (slider == null)
             return;
         slider.SetBlockSignals(true);
-        slider.Value = Config.GetIntensity(currentEffectIndex) * 100.0;
+        slider.Value = Config.GetIntensity(_currentEffectIndex) * 100.0;
         slider.SetBlockSignals(false);
     }
 
@@ -249,11 +249,11 @@ public partial class InspectScreen
             string cardId = ____cards[index].Id.ToString();
 
             var paginator = __instance.GetNodeOrNull<EffectsPaginator>(
-                vboxName + "/" + paginatorName
+                VboxName + "/" + PaginatorName
             );
             paginator?.UpdateTargetCard(cardId);
 
-            var slider = __instance.GetNodeOrNull<NSlider>(vboxName + "/" + sliderName);
+            var slider = __instance.GetNodeOrNull<NSlider>(VboxName + "/" + SliderName);
             UpdateSliderVisual(slider);
         }
     }
@@ -263,16 +263,16 @@ public partial class InspectScreen
     {
         public static void Postfix(List<CardModel> cards)
         {
-            visibleCards = cards;
+            _visibleCards = cards;
         }
     }
 
     [HarmonyPatch(typeof(NCardLibrary), nameof(NCardLibrary.OnSubmenuClosed))]
-    static class ClearVisiblecardsPatch
+    static class ClearVisibleCardsPatch
     {
         public static void Postfix()
         {
-            visibleCards = [];
+            _visibleCards = [];
         }
     }
 }

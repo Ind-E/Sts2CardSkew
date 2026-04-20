@@ -51,14 +51,10 @@ public static class Config
             {
                 MainFile.Logger.Info("???");
             }
-            else
+            else if (JsonSerializer.Deserialize<ConfigData>(json) is ConfigData data)
             {
-                var data = JsonSerializer.Deserialize<ConfigData>(json);
-                if (data != null)
-                {
-                    EffectSettings = data.EffectSettings ?? [];
-                    IntensitySettings = data.IntensitySettings ?? [];
-                }
+                EffectSettings = data.EffectSettings ?? [];
+                IntensitySettings = data.IntensitySettings ?? [];
             }
         }
         catch (Exception e)

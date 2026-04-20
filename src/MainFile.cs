@@ -9,7 +9,6 @@ namespace BalatroEffects;
 public partial class MainFile : Node
 {
     public const string ModId = "BalatroEffects";
-    private static SceneTree? tree;
 
     public static MegaCrit.Sts2.Core.Logging.Logger Logger { get; } =
         new(ModId, MegaCrit.Sts2.Core.Logging.LogType.Generic);
@@ -19,8 +18,7 @@ public partial class MainFile : Node
         new Harmony(ModId).PatchAll();
         Config.Load();
 
-        tree = Engine.GetMainLoop() as SceneTree;
-        if (tree is not null)
+        if (Engine.GetMainLoop() is SceneTree tree)
         {
             tree.NodeAdded += OnNodeAdded;
         }
