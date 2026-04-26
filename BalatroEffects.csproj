@@ -78,6 +78,11 @@
     </ItemGroup>
 
     <ItemGroup>
+        <PackageReference Include="Krafs.Publicizer" Version="2.3.0" PrivateAssets="All"/>
+        <Publicize Include="sts2" IncludeVirtualMembers="false" IncludeCompilerGeneratedMembers="false" />
+    </ItemGroup>
+
+    <ItemGroup>
         <Compile Remove="BalatroEffects/**" />
         <Compile Remove="materials/**" />
         <Compile Remove="shaders/**" />
