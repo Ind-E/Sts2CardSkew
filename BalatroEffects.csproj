@@ -8,7 +8,7 @@
         <AppOutputBase>$(MSBuildProjectDirectory)\</AppOutputBase>
         <PathMap>$(AppOutputBase)=.\</PathMap>
 
-        <Version>1.4.1</Version>
+        <Version>1.5.0</Version>
     </PropertyGroup>
 
     <!-- OS Detection -->

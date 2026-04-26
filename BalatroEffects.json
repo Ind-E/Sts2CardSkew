@@ -3,7 +3,7 @@
   "name": "Balatro Effects",
   "author": "Indi",
   "description": "Adds the skew effect from Balatro to cards and allows you to enable foil, polychrome, holo, or negative shaders per-card",
-  "version": "v1.4.1",
+  "version": "v1.5.0",
   "has_pck": true,
   "has_dll": true,
   "dependencies": [],
