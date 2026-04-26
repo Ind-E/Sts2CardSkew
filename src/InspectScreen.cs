@@ -3,7 +3,6 @@ using HarmonyLib;
 using MegaCrit.Sts2.addons.mega_text;
 using MegaCrit.Sts2.Core.Helpers;
 using MegaCrit.Sts2.Core.Models;
-using MegaCrit.Sts2.Core.Nodes.Cards;
 using MegaCrit.Sts2.Core.Nodes.GodotExtensions;
 using MegaCrit.Sts2.Core.Nodes.Screens;
 using MegaCrit.Sts2.Core.Nodes.Screens.CardLibrary;
@@ -94,8 +93,6 @@ public partial class InspectScreen
 
     public partial class ApplyToVisibleButton : NSettingsButton
     {
-        private TextureRect? _image;
-
         public ApplyToVisibleButton()
         {
             CustomMinimumSize = new Vector2(0, 64);
@@ -151,14 +148,14 @@ public partial class InspectScreen
         protected override void OnEnable()
         {
             base.OnEnable();
-            _image!.Modulate = Colors.White;
+            _image.Modulate = Colors.White;
             Modulate = Colors.White;
         }
 
         protected override void OnDisable()
         {
             base.OnDisable();
-            _image!.Modulate = Colors.Gray;
+            _image.Modulate = Colors.Gray;
             Modulate = Colors.Gray;
         }
     }
@@ -185,10 +182,7 @@ public partial class InspectScreen
             paginator.QueueFree();
 
             _label = (MegaLabel)FindChild("Label");
-            ref MegaLabel vfxField = ref AccessTools.FieldRefAccess<NPaginator, MegaLabel>(
-                "_vfxLabel"
-            )(this);
-            vfxField = (MegaLabel)FindChild("VfxLabel");
+            _vfxLabel = (MegaLabel)FindChild("VfxLabel");
 
             _options.AddRange(["None", "Foil", "Negative", "Polychrome", "Holographic"]);
 
@@ -229,9 +223,6 @@ public partial class InspectScreen
         slider.SetBlockSignals(false);
     }
 
-    private static readonly AccessTools.FieldRef<NInspectCardScreen, NCard> CardFieldRef =
-        AccessTools.FieldRefAccess<NInspectCardScreen, NCard>("_card");
-
     [HarmonyPatch(typeof(NInspectCardScreen), "SetCard")]
     public static class SetCardPatch
     {
@@ -244,8 +235,7 @@ public partial class InspectScreen
             if (____cards is null || index < 0 || index >= ____cards.Count)
                 return;
 
-            var cardNode = CardFieldRef(__instance);
-            ShaderController.ApplyShader(cardNode);
+            ShaderController.ApplyShader(__instance._card);
             string cardId = ____cards[index].Id.ToString();
 
             var paginator = __instance.GetNodeOrNull<EffectsPaginator>(

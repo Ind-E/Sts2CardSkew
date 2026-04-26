@@ -3,7 +3,6 @@ using HarmonyLib;
 using MegaCrit.Sts2.Core.Helpers;
 using MegaCrit.Sts2.Core.Nodes.Cards;
 using MegaCrit.Sts2.Core.Nodes.Cards.Holders;
-using MegaCrit.Sts2.Core.Nodes.GodotExtensions;
 using static Godot.CanvasItem;
 
 namespace BalatroEffects;
@@ -126,9 +125,6 @@ public partial class ShaderController
             }
         }
 
-        private static readonly AccessTools.FieldRef<NClickableControl, bool> IsHovered =
-            AccessTools.FieldRefAccess<NClickableControl, bool>("_isHovered");
-
         public override void _Process(double delta)
         {
             if (mat is null || _cardRoot is null)
@@ -163,7 +159,7 @@ public partial class ShaderController
 
             bool hovered =
                 _cardHolder is NHandCardHolder { ZIndex: > 0 }
-                || (_cardHolder.Hitbox is { IsEnabled: true } && IsHovered(_cardHolder.Hitbox));
+                || (_cardHolder.Hitbox is { IsEnabled: true } && _cardHolder.Hitbox._isHovered);
 
             if (hovered)
             {
@@ -188,12 +184,6 @@ public partial class ShaderController
     [HarmonyPatch(typeof(NCard), nameof(NCard.ActivateRewardScreenGlow))]
     public static class CardGlowBelowViewportPatch
     {
-        private static readonly AccessTools.FieldRef<NCard, Node> RareGlowRef =
-            AccessTools.FieldRefAccess<NCard, Node>("_rareGlow");
-
-        private static readonly AccessTools.FieldRef<NCard, Node> UncommonGlowRef =
-            AccessTools.FieldRefAccess<NCard, Node>("_uncommonGlow");
-
         [HarmonyPostfix]
         public static void Postfix(NCard __instance)
         {
@@ -203,9 +193,8 @@ public partial class ShaderController
             if (body.GetParent()?.GetParent()?.GetParent() is not Node cardRoot)
                 return;
 
-            GpuParticles2D glow = (GpuParticles2D)(
-                RareGlowRef(__instance) ?? UncommonGlowRef(__instance)
-            );
+            GpuParticles2D? glow =
+                (GpuParticles2D?)__instance._rareGlow ?? __instance._uncommonGlow;
 
             if (GodotObject.IsInstanceValid(glow) && glow.GetParent() == body)
             {
