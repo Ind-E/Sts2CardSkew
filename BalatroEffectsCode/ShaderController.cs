@@ -1,6 +1,4 @@
 using Godot;
-using HarmonyLib;
-using MegaCrit.Sts2.Core.Helpers;
 using MegaCrit.Sts2.Core.Nodes.Cards;
 using MegaCrit.Sts2.Core.Nodes.Cards.Holders;
 using static Godot.CanvasItem;
