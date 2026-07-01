@@ -1,4 +1,5 @@
 using Godot;
+using MegaCrit.Sts2.Core.Helpers;
 using MegaCrit.Sts2.Core.Nodes.Cards;
 using MegaCrit.Sts2.Core.Nodes.Cards.Holders;
 using static Godot.CanvasItem;
@@ -80,21 +81,21 @@ public partial class ShaderController
             cardContainer.RemoveChild(child);
             if (child == shadow || child == highlight)
             {
-                tiltRoot.AddChild(child);
+                tiltRoot.AddChildSafely(child);
             }
             else
             {
-                fxRoot.AddChild(child);
+                fxRoot.AddChildSafely(child);
             }
         }
 
-        tiltViewport.AddChild(tiltRoot);
-        tiltContainer.AddChild(tiltViewport);
-        cardContainer.AddChild(tiltContainer);
+        tiltViewport.AddChildSafely(tiltRoot);
+        tiltContainer.AddChildSafely(tiltViewport);
+        cardContainer.AddChildSafely(tiltContainer);
 
-        fxViewport.AddChild(fxRoot);
-        fxContainer.AddChild(fxViewport);
-        cardContainer.AddChild(fxContainer);
+        fxViewport.AddChildSafely(fxRoot);
+        fxContainer.AddChildSafely(fxViewport);
+        cardContainer.AddChildSafely(fxContainer);
     }
 
     private partial class ShaderContainer : SubViewportContainer

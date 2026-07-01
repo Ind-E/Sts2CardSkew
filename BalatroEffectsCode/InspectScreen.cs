@@ -37,19 +37,19 @@ public partial class InspectScreen
         var vbox = new VBoxContainer { Name = vboxName };
         vbox.AddThemeConstantOverride("separation", 8);
 
-        root.AddChild(vbox);
+        root.AddChildSafely(vbox);
 
-        vbox.AddChild(CreateLabel("Effect"));
-        vbox.AddChild(new EffectsPaginator());
+        vbox.AddChildSafely(CreateLabel("Effect"));
+        vbox.AddChildSafely(new EffectsPaginator());
 
-        vbox.AddChild(CreateDivider());
+        vbox.AddChildSafely(CreateDivider());
 
-        vbox.AddChild(CreateLabel("Intensity"));
-        vbox.AddChild(slider);
+        vbox.AddChildSafely(CreateLabel("Intensity"));
+        vbox.AddChildSafely(slider);
 
-        vbox.AddChild(CreateDivider());
+        vbox.AddChildSafely(CreateDivider());
 
-        vbox.AddChild(new ApplyToVisibleButton());
+        vbox.AddChildSafely(new ApplyToVisibleButton());
 
         vbox.SetAnchorsAndOffsetsPreset(Control.LayoutPreset.BottomRight);
         vbox.Position += 50 * Vector2.Left;
@@ -111,9 +111,11 @@ public partial class InspectScreen
             };
             img.SetAnchorsAndOffsetsPreset(LayoutPreset.FullRect);
             _image = img;
-            AddChild(img);
-            AddChild(CreateLabel("Apply to Visible Cards", 24));
-            AddChild(GD.Load<PackedScene>("res://scenes/ui/selection_reticle.tscn").Instantiate());
+            this.AddChildSafely(img);
+            this.AddChildSafely(CreateLabel("Apply to Visible Cards", 24));
+            this.AddChildSafely(
+                GD.Load<PackedScene>("res://scenes/ui/selection_reticle.tscn").Instantiate()
+            );
             ConnectSignals();
             VisibilityChanged += DisableWhenNotInCompendium;
             DisableWhenNotInCompendium();
@@ -176,7 +178,7 @@ public partial class InspectScreen
             foreach (Node child in paginator.GetChildren().ToArray())
             {
                 paginator.RemoveChild(child);
-                AddChild(child);
+                this.AddChildSafely(child);
             }
 
             paginator.QueueFree();
